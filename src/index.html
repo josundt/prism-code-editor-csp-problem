@@ -1,21 +1,30 @@
 <!doctype html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>CSP style-src-attr 'none' problem in prism-code-editor</title>
-        <script type="module" src="./index.ts" defer></script>
-    </head>
-    <body>
-        <h1>
-            CSP style-src-attr 'none' problem in <code>prism-code-editor</code>
-        </h1>
-        <p>
-            <em
-                >Please open the browser console to see the security policy
-                violations caused by a few inline style attributes in
-                prism-code-editor.</em
-            >
-        </p>
-        <div id="editor"></div>
-    </body>
+  <head>
+    <!-- Please notice CSP below (style-src-attr: 'none') -->
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline', style-src-attr 'none' 'report-sample'"
+    />
+
+    <meta charset="utf-8" />
+    <title>CSP style-src-attr 'none' problem in prism-code-editor</title>
+    <link rel="stylesheet" href="./index.css" />
+    <script type="module" src="./index.ts" defer></script>
+  </head>
+  <body>
+    <h1>
+      Content-Security-Policy <code>style-src-attr 'none'</code> problem in
+      <code>prism-code-editor</code>
+    </h1>
+    <p>
+      <em
+        >Please open the browser console to see the security policy violations
+        caused by a few inline style attributes in prism-code-editor.</em
+      >
+    </p>
+    |
+    <code-editor></code-editor>
+  </body>
 </html>

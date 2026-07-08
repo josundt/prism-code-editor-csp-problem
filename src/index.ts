@@ -1,41 +1,23 @@
 import "prism-code-editor/prism/languages/markup";
-import { basicEditor } from "prism-code-editor/setups";
+import { CodeEditorElement } from "./code-editor-element";
 
+// Register code editor custom element
+CodeEditorElement.register();
+
+// Listen for CSP violations and log style-src-attr directives to the console
 document.addEventListener("securitypolicyviolation", (e) => {
     if (e.violatedDirective === "style-src-attr") {
         console.warn(
-            `CSP 'style-src-attr' violation detected, style attribute value: ${e.sample}:`,
+            `CSP 'style-src-attr' violation detected, style attribute value: '${e.sample}${e.sample.length >= 40 ? "..." : ""}'`,
             e,
         );
     }
 });
 
-const container = document.querySelector<HTMLDivElement>("#editor")!;
-container.attachShadow({ mode: "open" });
+// Get the code editor custom element instance from the document
+const element = document.querySelector<CodeEditorElement>(
+    CodeEditorElement.tagName,
+)!;
 
-basicEditor(
-    container,
-    {
-        theme: "vs-code-light",
-        language: "html",
-        readOnly: true,
-        tabSize: 2,
-        insertSpaces: true,
-        wordWrap: false,
-        lineNumbers: false,
-        value: `
-<!doctype html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>title</title>
-        <script type="module" src="./index.ts" defer></script>
-    </head>
-    <body>
-        <div id="#editor"></div>
-    </body>
-</html>
-`.trim(),
-    },
-    () => console.log("Editor is ready"),
-);
+// Set the value of the code editor to the current document content (index.html)
+element.value = document.documentElement.outerHTML;

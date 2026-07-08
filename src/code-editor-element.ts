@@ -45,17 +45,20 @@ export class CodeEditorElement extends HTMLElement {
         this.#editor = basicEditor(
             this,
             {
-                theme: "vs-code-light",
-                language: "html",
-                readOnly: true,
-                tabSize: 2,
+                theme: this.theme ?? "vs-code-light",
+                ...(this.language ? { language: this.language } : {}),
+                readOnly: this.readOnly,
+                lineNumbers: this.lineNumbers,
+                wordWrap: this.wordWrap,
+                tabSize: this.tabSize,
                 insertSpaces: true,
-                wordWrap: false,
-                lineNumbers: false,
-                //                value: indexContent,
+                ...(this.value ? { value: this.value } : {}),
             },
             () => console.log("Editor is ready"),
         );
+        this.#editor.on("update", (value) => {
+            this.value = value;
+        });
     }
 
     disconnectedCallback() {
@@ -81,6 +84,20 @@ export class CodeEditorElement extends HTMLElement {
         this.#updateAttributeValue("value", val);
     }
 
+    get language(): string | null {
+        return this.getAttribute("language");
+    }
+    set language(val: string | null) {
+        this.#updateAttributeValue("language", val);
+    }
+
+    get theme(): string | null {
+        return this.getAttribute("theme");
+    }
+    set theme(val: string | null) {
+        this.#updateAttributeValue("theme", val);
+    }
+
     get readOnly(): boolean {
         const val = this.#parseAttributeValue<"readOnly">(
             "read-only",
@@ -92,6 +109,17 @@ export class CodeEditorElement extends HTMLElement {
         this.#updateAttributeValue("read-only", val);
     }
 
+    get wordWrap(): boolean {
+        const val = this.#parseAttributeValue<"wordWrap">(
+            "word-wrap",
+            this.getAttribute("word-wrap"),
+        );
+        return val === null || val === undefined ? false : val;
+    }
+    set wordWrap(val: boolean) {
+        this.#updateAttributeValue("word-wrap", val);
+    }
+
     get lineNumbers(): boolean {
         const val = this.#parseAttributeValue<"lineNumbers">(
             "line-numbers",
@@ -101,6 +129,17 @@ export class CodeEditorElement extends HTMLElement {
     }
     set lineNumbers(val: boolean) {
         this.#updateAttributeValue("line-numbers", val);
+    }
+
+    get tabSize(): number {
+        const val = this.#parseAttributeValue<"tabSize">(
+            "tab-size",
+            this.getAttribute("tab-size"),
+        );
+        return val === null || val === undefined ? 2 : val;
+    }
+    set tabSize(val: number) {
+        this.#updateAttributeValue("tab-size", val);
     }
 
     #updateAttributeValue<TKey extends keyof SetupOptions>(
@@ -133,8 +172,12 @@ export class CodeEditorElement extends HTMLElement {
                 return value as SetupOptions[TKey];
             }
             case "boolean": {
-                return (!value ||
-                    value.toLowerCase() === "true") as SetupOptions[TKey];
+                return (value !== null &&
+                    value !== undefined &&
+                    (value.trim() === "" ||
+                        value.toLowerCase() === "true" ||
+                        value.toLowerCase() ===
+                            name.toLowerCase())) as SetupOptions[TKey];
             }
             case "number": {
                 const r = Number(value);

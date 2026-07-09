@@ -1,5 +1,8 @@
+import { createEditor, type PrismEditor } from "prism-code-editor";
+import layoutStylesRaw from "prism-code-editor/layout.css?inline";
 import "prism-code-editor/prism/languages/markup";
-import { basicEditor, type SetupOptions } from "prism-code-editor/setups";
+import { type SetupOptions } from "prism-code-editor/setups";
+import defaultThemeStylesRaw from "prism-code-editor/themes/vs-code-light.css?inline";
 
 type CamelToKebab<S extends string> = S extends `${infer Head}${infer Tail}`
     ? Tail extends Uncapitalize<Tail>
@@ -11,6 +14,12 @@ export class CodeEditorElement extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
+
+        CodeEditorElement.#addCssStyleSheetsFromRaw(
+            this.shadowRoot,
+            layoutStylesRaw,
+            defaultThemeStylesRaw,
+        );
     }
 
     static readonly tagName = "code-editor";
@@ -39,29 +48,43 @@ export class CodeEditorElement extends HTMLElement {
         }
     }
 
-    #editor?: ReturnType<typeof basicEditor>;
+    static #addCssStyleSheetsFromRaw(
+        shadowRoot: ShadowRoot | null,
+        layoutStyleSheet: string,
+        themeStyleSheet: string,
+    ): void {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(`${layoutStyleSheet}\n${themeStyleSheet}`);
+        shadowRoot?.adoptedStyleSheets.push(sheet);
+    }
+
+    #editor?: PrismEditor<{}>;
 
     connectedCallback() {
-        this.#editor = basicEditor(
-            this,
-            {
-                theme: this.theme ?? "vs-code-light",
-                ...(this.language ? { language: this.language } : {}),
-                readOnly: this.readOnly,
-                lineNumbers: this.lineNumbers,
-                wordWrap: this.wordWrap,
-                tabSize: this.tabSize,
-                insertSpaces: true,
-                ...(this.value ? { value: this.value } : {}),
-            },
-            () => console.log("Editor is ready"),
+        const options: SetupOptions = {
+            theme: this.theme ?? "vs-code-light",
+            ...(this.language ? { language: this.language } : {}),
+            readOnly: this.readOnly,
+            lineNumbers: this.lineNumbers,
+            wordWrap: this.wordWrap,
+            tabSize: this.tabSize,
+            insertSpaces: true,
+            ...(this.value ? { value: this.value } : {}),
+        };
+
+        this.#editor = createEditor(this, options, () =>
+            console.log("Editor is ready"),
         );
+        this.shadowRoot?.append(this.#editor.container);
+        this.#editor.setOptions(options);
         this.#editor.on("update", (value) => {
+            // Update attribute value each time the editor content changes
             this.value = value;
         });
     }
 
     disconnectedCallback() {
+        this.value = null;
         this.#editor?.remove();
     }
 

@@ -5,6 +5,7 @@ export default defineConfig({
     build: {
         outDir: "../dist",
         emptyOutDir: true,
+        sourcemap: true, // Ensures source maps are generated
     },
     server: {
         port: 8082,
@@ -12,4 +13,5 @@ export default defineConfig({
     preview: {
         port: 8082,
     },
+    clearScreen: false,
 });
